@@ -79,6 +79,7 @@
 }
 
 @theme inline {
+  --font-orbitron: 'Orbitron', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -177,5 +178,23 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
+  }
+}
+
+@layer components {
+  .scout-scanline {
+    display: inline-block;
+    mask-image:
+      linear-gradient(#000 0 0),
+      repeating-linear-gradient(to bottom, #000 0 0.02em, transparent 0.02em 0.05em);
+    mask-position: top, bottom;
+    mask-repeat: no-repeat, repeat-y;
+    mask-size: 100% 67%, 100% 33%;
+    -webkit-mask-image:
+      linear-gradient(#000 0 0),
+      repeating-linear-gradient(to bottom, #000 0 0.025em, transparent 0.025em 0.05em);
+    -webkit-mask-position: top, bottom;
+    -webkit-mask-repeat: no-repeat, repeat-y;
+    -webkit-mask-size: 100% 67%, 100% 33%;
   }
 }

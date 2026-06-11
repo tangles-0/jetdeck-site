@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from '@/app/components/ui/carousel';
 
-export const ProductCarousel = ({ images, noEffect }: { images: { src: string; alt: string }[], noEffect?: boolean }) => {
+export const ProductCarousel = ({ images, noEffect, constrainWidth = true }: { images: { src: string; alt: string }[], noEffect?: boolean, constrainWidth?: boolean }) => {
 
   const [current, setCurrent] = useState(0);
   const [api, setApi] = useState<CarouselApi>();
@@ -18,7 +18,7 @@ export const ProductCarousel = ({ images, noEffect }: { images: { src: string; a
     });
   }, [api]);
 
-  return <div className="max-w-3xl mx-auto mb-12">
+  return <div className={`${constrainWidth ? 'max-w-3xl' : ''} mx-auto mb-12`}>
     <Carousel
       setApi={setApi}
       opts={{
@@ -36,7 +36,7 @@ export const ProductCarousel = ({ images, noEffect }: { images: { src: string; a
                 alt={image.alt}
                 className="w-full h-auto"
               />
-              <div className={`absolute inset-0 pointer-events-none ${noEffect ? 'bg-radial from-transparent to-black/20' : 'bg-gradient-to-t from-slate-950/80 via-transparent to-transparent'}`} />
+              {/* <div className={`absolute inset-0 pointer-events-none ${noEffect ? 'bg-radial from-transparent to-black/20' : 'bg-gradient-to-t from-slate-950/80 via-transparent to-transparent'}`} /> */}
             </div>
           </CarouselItem>
         ))}
