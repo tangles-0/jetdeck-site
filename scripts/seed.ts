@@ -23,6 +23,18 @@ const imageItems = (images: number[]) => images.map((image) => ({ image }))
 const paragraphs = (items: string[]) => items.map((text) => ({ text }))
 
 const run = async () => {
+  const databaseUri = process.env.DATABASE_URI ?? ''
+  const isLocalDatabase =
+    databaseUri.includes('localhost') ||
+    databaseUri.includes('127.0.0.1') ||
+    databaseUri.includes('host.docker.internal')
+
+  if (!isLocalDatabase && !process.env.BLOB_READ_WRITE_TOKEN && process.env.ALLOW_LOCAL_MEDIA_WITH_REMOTE_DB !== 'true') {
+    throw new Error(
+      'Refusing to seed media into a remote database without BLOB_READ_WRITE_TOKEN. Add your Vercel Blob token or set ALLOW_LOCAL_MEDIA_WITH_REMOTE_DB=true to override.',
+    )
+  }
+
   const payload = await getPayload({ config })
 
   const existingHome = await payload.find({
@@ -55,28 +67,17 @@ const run = async () => {
     return media.id
   }
 
-  const animation = await uploadImage('animation-1.gif', 'JetDeck SCOUT - Animation')
+  const animation = await uploadImage(
+    'animation-1.gif',
+    'an artistic video of the jetdeck scout with purple backlighting and a cyberpunk visualisation playing on the display',
+  )
 
   const photoCarousel = [
-    await uploadImage('IMG_6188 2.jpg', 'JetDeck SCOUT - Photo 1'),
-    await uploadImage('IMG_6193.jpg', 'JetDeck SCOUT - Photo 2'),
-    await uploadImage('IMG_6187 2.jpg', 'JetDeck SCOUT - Photo 3'),
-    await uploadImage('IMG_6153.jpg', 'JetDeck SCOUT - Photo 4'),
-    await uploadImage('IMG_6196.jpg', 'JetDeck SCOUT - Photo 5'),
-  ]
-
-  const resinCarousel = [
-    await uploadImage('P1090600.JPG', 'JetDeck SCOUT - Resin Front View'),
-    await uploadImage('P1090597.JPG', 'JetDeck SCOUT - Resin Side View'),
-    await uploadImage('P1090601.JPG', 'JetDeck SCOUT - Resin Side View'),
-    await uploadImage('P1090603.JPG', 'JetDeck SCOUT - Resin Side View'),
-    await uploadImage('P1090607.JPG', 'JetDeck SCOUT - Resin Side View'),
-    await uploadImage('P1090593.png', 'JetDeck SCOUT - Resin Side View'),
-  ]
-
-  const pcbCarousel = [
-    await uploadImage('P1090588.JPG', 'JetDeck SCOUT - PCB Back View'),
-    await uploadImage('P1090589.JPG', 'JetDeck SCOUT - PCB Front View'),
+    await uploadImage('IMG_6188 2.jpg', 'jetdeck scout on a desk looking resplendent'),
+    await uploadImage('IMG_6193.jpg', 'jetdeck scout on a desk looking resplendent'),
+    await uploadImage('IMG_6187 2.jpg', 'jetdeck scout on a desk looking resplendent'),
+    await uploadImage('IMG_6153.jpg', 'jetdeck scout on a desk looking resplendent'),
+    await uploadImage('IMG_6196.jpg', 'jetdeck scout on a desk looking resplendent'),
   ]
 
   await payload.updateGlobal({
@@ -133,14 +134,14 @@ const run = async () => {
         {
           blockType: 'quickStats',
           stats: [
-            { icon: 'Antenna', color: 'cyan', value: 'LoRa', label: 'built-in LoRa radio' },
-            { icon: 'Battery', color: 'green', value: '10,000mAh', label: 'Battery' },
+            { icon: 'Antenna', color: 'cyan', value: 'LoRa', label: 'built-in mesh radio' },
+            { icon: 'Battery', color: 'green', value: '10,000mAh', label: 'big battery for extended use' },
             { icon: 'Wifi', color: 'purple', value: 'WiFi 6', label: '+ BT 5' },
             { icon: 'Zap', color: 'yellow', value: 'USB-C PD', label: 'bi-directional charging' },
             { icon: 'Gpu', color: 'red', value: 'M.2 M + B', label: 'slots for NVMe and WWAN modules' },
             { icon: 'Heart', color: 'pink', value: 'Open Source', label: 'full CAD and source code' },
-            { icon: 'Camera', color: 'orange', value: 'Camera', label: 'rear-facing 5MP autofocus' },
-            { icon: 'EthernetPort', color: 'blue', value: 'Ethernet', label: 'Gigabit ethernet port' },
+            { icon: 'Camera', color: 'orange', value: 'Camera', label: 'rear-facing 5MP auto-focus' },
+            { icon: 'EthernetPort', color: 'blue', value: 'Ethernet', label: 'gigabit ethernet port' },
           ],
         },
         {
@@ -148,8 +149,9 @@ const run = async () => {
           icon: 'Cpu',
           color: 'cyan',
           lines: paragraphs([
-            'Compatible with Raspberry Pi Compute Module 5',
-            'Supports CM4 3rd party alternatives',
+            'Compatible with:',
+            'Raspberry Pi CM5, Bigtreetech CB2, Radxa CM3, OrangePi CM4',
+            '...and more (TBC)',
           ]),
         },
         {
@@ -176,12 +178,7 @@ const run = async () => {
         {
           blockType: 'photoCarousel',
           images: imageItems(photoCarousel),
-          caption: '*prototype designs shown',
-          constrainWidth: true,
-        },
-        {
-          blockType: 'photoCarousel',
-          images: imageItems(resinCarousel),
+          caption: "*engineering prototype shown, production unit may differ slightly (it'll be more betterer)",
           constrainWidth: true,
         },
         {
@@ -192,14 +189,25 @@ const run = async () => {
               label: 'Compute',
               title: 'Compute Core',
               rows: [
-                { label: 'Processor', value: 'Raspberry Pi CM5 (CM4 compatible*)' },
-                { label: 'Cooling', value: 'Copper heat sink, aluminum rear housing, and integrated fan' },
                 {
-                  label: 'Storage',
-                  value: 'Optional EMMC (depends on compute module variant), 2230/2245 NVMe SSD',
+                  label: 'Processor',
+                  value: 'Raspberry Pi CM5 / CM4 (or compatible) (not included - optional add-on at purchase)',
                 },
-                { label: 'MicroSD', value: 'TF / MicroSD card slot' },
-                { label: 'MCU', value: 'RP2040 MCU' },
+                { label: 'Cooling', value: 'Copper heat sink, aluminum rear housing, and integrated fan' },
+                { label: 'Storage', value: 'EMMC or MicroSD card (depends on compute module)' },
+                {
+                  label: 'SSD / PCI-E',
+                  value:
+                    'NVMe SSD via M.2 M-key 2230/2245 slot - 1x lane PCI-e 2.0/3.0 when used with CM5 (availability depends on compute module)',
+                },
+                {
+                  label: 'MicroSD',
+                  value: 'TF / MicroSD card slot (usually not available if EMMC is present - check compute module specs)',
+                },
+                {
+                  label: 'MCU',
+                  value: 'onboard RP2040 MCU used for gamepad / touchscreen via USB, customisable via Arduino sketch',
+                },
               ],
             },
             {
@@ -211,12 +219,12 @@ const run = async () => {
                 { label: 'USB 2.0', value: '4x ports (2x USB-C, 2x internal)' },
                 { label: 'Ethernet', value: '10/100/1000 Mbps RJ45' },
                 { label: 'Audio', value: '3.5mm headphone jack, S/PDIF out, 3.5mm line-in' },
-                { label: 'Wireless', value: 'WiFi 6 / BT 5 (when used with wireless CM variant)' },
+                { label: 'Wireless', value: 'WiFi 6 / BT 5 (when used with wireless CM5 variant)' },
                 { label: 'NFC', value: 'NFC reader / writer (TBC! see Kickstarter for details)' },
                 { label: 'GPIO', value: '40-pin Raspberry Pi header (top edge) + internal breakouts' },
                 { label: 'Infrared', value: '940nm TX/RX' },
                 { label: 'MIPI', value: '2x 4-lane (camera and display)' },
-                { label: 'Optional 4G/LTE', value: 'M.2 B-key for WWAN module + micro SIM slot' },
+                { label: 'WWAN', value: 'M.2 B-key for WWAN module + micro SIM slot' },
               ],
             },
             {
@@ -258,17 +266,13 @@ const run = async () => {
           ],
         },
         {
-          blockType: 'photoCarousel',
-          images: imageItems(pcbCarousel),
-          constrainWidth: true,
-        },
-        {
           blockType: 'textBlock',
           heading: 'About the Creator',
           paragraphs: paragraphs([
-            "Hey there! I'm a hardware hacker and maker with a passion for the Cyberpunk aesthetic and open-source tech. I've set out to create a portable, powerful handheld linux computer that is both functional and stylish. The JetDeck SCOUT is the culmination of years of tinkering with cyberdecks, embedded systems, and mobile computing platforms.",
-            'I built the SCOUT because I wanted a device that could truly do it all - from administering my homelab, to casual web browsing and media consumption, to serving as a development platform for IoT projects and mesh networks. I know how important it is to have tools that are both practical and cool :)',
-            "This gadget is designed to be hackable, extensible, and community-driven. I can't wait to see what you build with the SCOUT! If you're interested in supporting this project, please check out the Kickstarter campaign. Your backing will help bring this vision to life and supports the ongoing development of open-source, hacker-oriented hardware.",
+            "Hey there! I'm a hardware hacker and maker from Melbourne, Australia, with a passion for practical gadgets and open-source tech. I've set out to create a lovable yet powerful handheld linux computer that is both super functional and stylish. It boasts an aesthetic inspired by the Y2K 'clear craze', if it were dragged kicking and screaming by purple backlighting and military ruggedness into a cyberpunk future, where the streets are adorned with neon and one's tech is an expression of self. The JetDeck SCOUT is the culmination of years of experimenting with electronics, building janky robots, and chasing all manner of niche computing gadgets.",
+            "SCOUT was brought into existence to be the device that can truly do it all. Gaming, administering a homelab, surfing the web, watching videos, or serving as a development platform for IoT projects and mesh networks... its capability is only as limited as your imagination. It is both highly practical, compact enough to be more than a toy, and cool enough to be a genuine pleasure to use :) I believe such a product can only be realised by putting aside the rapacious drive to maximise profit and monetisation that is pervasive in our society. SCOUT refuses to compromise in delivering comprehensive features and premium build quality in a package worthy of the tech it contains, and it does it while being fully open-source - from the firmware balancing the charge in the lithium cells to the KiCad schematics complete with PCBA part numbers. Imitation is the highest form of flattery, but nobody will be able to touch SCOUT, because SCOUT isn't about profit margins or quarterly reports, it's about the user experience and making sure the tech you buy belongs to you, forever.",
+            'That\'s why this gadget is designed to be hackable, extensible, and community-driven. I\'m doing everything possible to accommodate all the weird and wonderful use-cases being tossed about on Discord, Reddit, and elsewhere, and it truly saddens me when I have to say "sorry, but that isn\'t feasible", which is why I\'m doing it as little possible. You\'re being equipped with the best of the best to make SCOUT into whatever you can imagine, and I can\'t wait to see what you build with it!',
+            "If you're interested in supporting this project, please check out the Kickstarter campaign at the links on this page. Your backing will make an enormous difference in helping bring this vision to life and supports the ongoing development of open-source, hacker-oriented hardware.",
           ]),
         },
         {
@@ -285,7 +289,7 @@ const run = async () => {
               icon: 'externalLink',
             },
           ],
-          subtext: 'Starting at $275 AUD (excl. CM5)',
+          subtext: 'Starting at $275 AUD (excl. compute module)',
         },
         {
           blockType: 'footer',

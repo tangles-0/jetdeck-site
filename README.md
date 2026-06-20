@@ -1,84 +1,108 @@
-# JetDeck SCOUT Launch Site
+# JetDeck SCOUT Site
 
-One-page promo site for the JetDeck SCOUT, built with **Next.js + Payload CMS**.
-All page text and images are editable in the Payload admin panel at `/admin` —
-no rebuild or redeploy needed to change content.
+Marketing site for JetDeck SCOUT, built with **Next.js + Payload CMS**.
+Payload runs inside the same app, with the admin panel at `/admin`.
 
 ## Stack
 
-- **Next.js** (App Router) — frontend
-- **Payload CMS 3** — embedded in the same app, admin at `/admin`
-- **Postgres** — content database (Neon in production)
-- **Vercel Blob** — image storage in production (local `./media` folder in dev)
-- **Tailwind CSS v4** + shadcn/ui components
+- **Next.js** App Router for the frontend
+- **Payload CMS 3** for pages, media, and admin editing
+- **Neon Postgres** for the CMS database
+- **Vercel Blob** for production media uploads
+- **Tailwind CSS v4** and the existing shadcn/ui components
 
-## Local development
+## Content Model
+
+Pages live in the **Pages** collection. Each page has:
+
+- `title` for organising pages in the CMS
+- `path` for the public route, e.g. `/`, `/about`, `/specs`
+- `showNavigation` to control whether that page renders the navbar
+- `showInNav`, `navLabel`, and `navOrder` to manage navbar entries
+- `layout`, a sortable list of content sections
+
+Available page sections:
+
+- Hero Section
+- Single Image
+- Photo Carousel
+- CTA
+- Text Block
+- Quick Stats
+- Detail Stat
+- Specs Table
+- CTA Container
+- Footer, including optional sitemap-style link columns
+
+Global navigation settings live in **Site Settings**. CMS-managed page links come
+from pages with `showInNav` enabled, and extra external links can be added there.
+The homepage can keep `showNavigation` disabled so it stays navbar-free.
+
+## Environment
 
 ```bash
 pnpm install
-cp .env.example .env   # then fill in the values
+cp .env.example .env
 ```
 
-You need a Postgres database. Easiest local option:
+Set:
+
+- `DATABASE_URI` to your Neon connection string
+- `PAYLOAD_SECRET` to a generated secret, e.g. `openssl rand -hex 32`
+- `BLOB_READ_WRITE_TOKEN` to your Vercel Blob token before seeding or uploading production media
+
+The seed script refuses to seed a remote database without `BLOB_READ_WRITE_TOKEN`,
+because that would store media files locally while writing media records to Neon.
+
+## Development
 
 ```bash
-docker run -d --name jetdeck-pg -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=jetdeck -p 55432:5432 postgres:17-alpine
-# DATABASE_URI=postgres://postgres:postgres@localhost:55432/jetdeck
+pnpm payload migrate
+pnpm dev
 ```
 
-Then:
+Visit `/admin` to create the first admin user, then create pages and arrange
+sections in the page builder.
+
+To load the original homepage content and images after Blob is configured:
 
 ```bash
-pnpm payload migrate   # create the database tables
-pnpm seed              # load the original site content + images into the CMS
-pnpm dev               # http://localhost:3000 (admin at /admin)
+pnpm seed
 ```
 
-On first visit to `/admin` you'll be prompted to create your admin user.
+Use `FORCE_SEED=true pnpm seed` to replace an existing seeded homepage.
 
-## Editing content
+## Deployment
 
-Everything lives in **Site Content** (a Payload "global") in the admin panel,
-organised into tabs: Hero, Quick Stats, What Is It, Tech Specs, About, CTA & Footer.
-Carousel images are uploads in the **Media** collection — drop in a new image,
-hit save, and the home page revalidates instantly.
+Vercel is the intended host:
 
-## Deployment (Vercel + Neon + Vercel Blob)
+1. Import the repo into Vercel.
+2. Add a Vercel Blob store so `BLOB_READ_WRITE_TOKEN` is available.
+3. Add `DATABASE_URI` and `PAYLOAD_SECRET`.
+4. Deploy.
 
-1. **Neon** — create a project, copy the *pooled* connection string.
-2. **Vercel** — import this repo. In project settings:
-   - Add a **Blob store** (Storage tab) — this auto-creates `BLOB_READ_WRITE_TOKEN`.
-   - Set environment variables:
-     - `DATABASE_URI` — the Neon connection string
-     - `PAYLOAD_SECRET` — generate with `openssl rand -hex 32`
-3. Deploy. The `vercel-build` script runs database migrations automatically
-   before each build.
-4. Visit `https://your-site.vercel.app/admin`, create your admin user, then run
-   the seed locally against production to load the initial content:
+The `vercel-build` script runs `payload generate:importmap`, `payload migrate`,
+and `next build`.
 
-   ```bash
-   DATABASE_URI=<neon-uri> PAYLOAD_SECRET=<secret> BLOB_READ_WRITE_TOKEN=<token> pnpm seed
-   ```
+## Schema Changes
 
-### Schema changes
-
-If you change collections/globals in `src/`, create a migration and commit it:
+When changing Payload collections, globals, or blocks:
 
 ```bash
 pnpm payload migrate:create my_change
-pnpm payload migrate          # apply locally
-pnpm generate:types           # refresh src/payload-types.ts
+pnpm payload migrate
+pnpm generate:types
+pnpm generate:importmap
 ```
 
-Production migrations run automatically during the Vercel build.
+Commit the generated migration and `src/payload-types.ts`.
 
-## Useful scripts
+## Useful Scripts
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Dev server with hot reload |
-| `pnpm build` / `pnpm start` | Production build / serve |
-| `pnpm seed` | Seed CMS with the original site content (skips if already seeded; `FORCE_SEED=true` to overwrite) |
-| `pnpm payload migrate` | Run pending DB migrations |
-| `pnpm generate:types` | Regenerate `src/payload-types.ts` from the Payload config |
+- `pnpm dev` starts the Next.js dev server
+- `pnpm build` builds the site
+- `pnpm start` serves the production build
+- `pnpm seed` seeds the original homepage content
+- `pnpm payload migrate` runs pending DB migrations
+- `pnpm generate:types` regenerates Payload TypeScript types
+- `pnpm generate:importmap` regenerates the Payload admin import map
