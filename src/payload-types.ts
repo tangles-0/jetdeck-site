@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    pages: Page;
     media: Media;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -77,6 +78,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -88,10 +90,10 @@ export interface Config {
   };
   fallbackLocale: null;
   globals: {
-    'site-content': SiteContent;
+    'site-settings': SiteSetting;
   };
   globalsSelect: {
-    'site-content': SiteContentSelect<false> | SiteContentSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -148,6 +150,220 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: number;
+  /**
+   * Internal title used to organise pages in the CMS.
+   */
+  title: string;
+  /**
+   * Public URL path. Use / for the homepage, /about for a top-level page, etc.
+   */
+  path: string;
+  showNavigation?: boolean | null;
+  showInNav?: boolean | null;
+  /**
+   * Optional label used in the navigation. Falls back to the page title.
+   */
+  navLabel?: string | null;
+  navOrder?: number | null;
+  layout: (
+    | {
+        titlePrimary: string;
+        titleSecondary: string;
+        tagline?: string | null;
+        subtagline?: string | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'hero';
+      }
+    | {
+        image: number | Media;
+        constrainWidth?: boolean | null;
+        caption?: string | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'singleImage';
+      }
+    | {
+        images?:
+          | {
+              image: number | Media;
+              id?: string | null;
+            }[]
+          | null;
+        caption?: string | null;
+        constrainWidth?: boolean | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'photoCarousel';
+      }
+    | {
+        ctas?:
+          | {
+              label: string;
+              url: string;
+              variant: 'primary' | 'secondary';
+              icon: 'none' | 'externalLink' | 'discord' | 'terminal';
+              id?: string | null;
+            }[]
+          | null;
+        align: 'center' | 'left';
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'cta';
+      }
+    | {
+        heading?: string | null;
+        paragraphs?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'textBlock';
+      }
+    | {
+        stats?:
+          | {
+              icon:
+                | 'Antenna'
+                | 'Battery'
+                | 'Bluetooth'
+                | 'Camera'
+                | 'Cpu'
+                | 'EthernetPort'
+                | 'ExternalLink'
+                | 'Gamepad2'
+                | 'Gpu'
+                | 'HardDrive'
+                | 'Heart'
+                | 'Keyboard'
+                | 'MemoryStick'
+                | 'Radio'
+                | 'Terminal'
+                | 'Usb'
+                | 'Wifi'
+                | 'Zap';
+              color: 'cyan' | 'blue' | 'purple' | 'green' | 'yellow' | 'orange' | 'red' | 'pink';
+              value: string;
+              label: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'quickStats';
+      }
+    | {
+        icon?:
+          | (
+              | 'Antenna'
+              | 'Battery'
+              | 'Bluetooth'
+              | 'Camera'
+              | 'Cpu'
+              | 'EthernetPort'
+              | 'ExternalLink'
+              | 'Gamepad2'
+              | 'Gpu'
+              | 'HardDrive'
+              | 'Heart'
+              | 'Keyboard'
+              | 'MemoryStick'
+              | 'Radio'
+              | 'Terminal'
+              | 'Usb'
+              | 'Wifi'
+              | 'Zap'
+            )
+          | null;
+        color?: ('cyan' | 'blue' | 'purple' | 'green' | 'yellow' | 'orange' | 'red' | 'pink') | null;
+        lines?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'detailStat';
+      }
+    | {
+        heading?: string | null;
+        tabs?:
+          | {
+              label: string;
+              title: string;
+              rows?:
+                | {
+                    label: string;
+                    value: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'specsTable';
+      }
+    | {
+        title: string;
+        paragraphs?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        ctas?:
+          | {
+              label: string;
+              url: string;
+              variant: 'primary' | 'secondary';
+              icon: 'none' | 'externalLink' | 'discord' | 'terminal';
+              id?: string | null;
+            }[]
+          | null;
+        subtext?: string | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'ctaContainer';
+      }
+    | {
+        line1?: string | null;
+        line2?: string | null;
+        /**
+         * Optional sitemap-style footer link columns.
+         */
+        columns?:
+          | {
+              title: string;
+              links?:
+                | {
+                    label: string;
+                    url: string;
+                    id?: string | null;
+                  }[]
+                | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'footer';
+      }
+  )[];
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -195,6 +411,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'media';
@@ -266,6 +486,180 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  path?: T;
+  showNavigation?: T;
+  showInNav?: T;
+  navLabel?: T;
+  navOrder?: T;
+  layout?:
+    | T
+    | {
+        hero?:
+          | T
+          | {
+              titlePrimary?: T;
+              titleSecondary?: T;
+              tagline?: T;
+              subtagline?: T;
+              id?: T;
+              blockName?: T;
+            };
+        singleImage?:
+          | T
+          | {
+              image?: T;
+              constrainWidth?: T;
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
+        photoCarousel?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    id?: T;
+                  };
+              caption?: T;
+              constrainWidth?: T;
+              id?: T;
+              blockName?: T;
+            };
+        cta?:
+          | T
+          | {
+              ctas?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    variant?: T;
+                    icon?: T;
+                    id?: T;
+                  };
+              align?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textBlock?:
+          | T
+          | {
+              heading?: T;
+              paragraphs?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        quickStats?:
+          | T
+          | {
+              stats?:
+                | T
+                | {
+                    icon?: T;
+                    color?: T;
+                    value?: T;
+                    label?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        detailStat?:
+          | T
+          | {
+              icon?: T;
+              color?: T;
+              lines?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        specsTable?:
+          | T
+          | {
+              heading?: T;
+              tabs?:
+                | T
+                | {
+                    label?: T;
+                    title?: T;
+                    rows?:
+                      | T
+                      | {
+                          label?: T;
+                          value?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+        ctaContainer?:
+          | T
+          | {
+              title?: T;
+              paragraphs?:
+                | T
+                | {
+                    text?: T;
+                    id?: T;
+                  };
+              ctas?:
+                | T
+                | {
+                    label?: T;
+                    url?: T;
+                    variant?: T;
+                    icon?: T;
+                    id?: T;
+                  };
+              subtext?: T;
+              id?: T;
+              blockName?: T;
+            };
+        footer?:
+          | T
+          | {
+              line1?: T;
+              line2?: T;
+              columns?:
+                | T
+                | {
+                    title?: T;
+                    links?:
+                      | T
+                      | {
+                          label?: T;
+                          url?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -324,252 +718,37 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-content".
+ * via the `definition` "site-settings".
  */
-export interface SiteContent {
+export interface SiteSetting {
   id: number;
-  heroTitlePrimary: string;
-  heroTitleSecondary: string;
-  heroTagline?: string | null;
-  heroSubTagline?: string | null;
+  navBrandLabel?: string | null;
   /**
-   * The animated GIF / image shown under the title
+   * Optional links shown after CMS-managed page links. Useful for external links.
    */
-  heroAnimation?: (number | null) | Media;
-  kickstarterLabel?: string | null;
-  kickstarterUrl?: string | null;
-  discordLabel?: string | null;
-  discordUrl?: string | null;
-  /**
-   * The grid of stat cards under the hero
-   */
-  stats?:
+  navLinks?:
     | {
-        icon:
-          | 'Antenna'
-          | 'Battery'
-          | 'Bluetooth'
-          | 'Camera'
-          | 'Cpu'
-          | 'EthernetPort'
-          | 'Gamepad2'
-          | 'Gpu'
-          | 'HardDrive'
-          | 'Heart'
-          | 'Keyboard'
-          | 'MemoryStick'
-          | 'Radio'
-          | 'Terminal'
-          | 'Usb'
-          | 'Wifi'
-          | 'Zap';
-        color: 'cyan' | 'blue' | 'purple' | 'green' | 'yellow' | 'orange' | 'red' | 'pink';
-        value: string;
         label: string;
+        url: string;
         id?: string | null;
       }[]
     | null;
-  /**
-   * The wide card under the stats grid (CM5 compatibility note)
-   */
-  computeNote?: {
-    icon?:
-      | (
-          | 'Antenna'
-          | 'Battery'
-          | 'Bluetooth'
-          | 'Camera'
-          | 'Cpu'
-          | 'EthernetPort'
-          | 'Gamepad2'
-          | 'Gpu'
-          | 'HardDrive'
-          | 'Heart'
-          | 'Keyboard'
-          | 'MemoryStick'
-          | 'Radio'
-          | 'Terminal'
-          | 'Usb'
-          | 'Wifi'
-          | 'Zap'
-        )
-      | null;
-    lines?:
-      | {
-          text: string;
-          id?: string | null;
-        }[]
-      | null;
-  };
-  whatIsHeading?: string | null;
-  whatIsParagraphs?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  badgeText?: string | null;
-  badgeUrl?: string | null;
-  /**
-   * First carousel (lifestyle photos)
-   */
-  photoCarousel?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  photoCaption?: string | null;
-  /**
-   * Second, full-width carousel
-   */
-  resinCarousel?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  specsHeading?: string | null;
-  /**
-   * One entry per tab in the specs section
-   */
-  specTabs?:
-    | {
-        /**
-         * Tab button label
-         */
-        label: string;
-        /**
-         * Card title inside the tab
-         */
-        title: string;
-        rows?:
-          | {
-              label: string;
-              value: string;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Carousel shown above the about section
-   */
-  pcbCarousel?:
-    | {
-        image: number | Media;
-        id?: string | null;
-      }[]
-    | null;
-  aboutHeading?: string | null;
-  aboutParagraphs?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  ctaHeading?: string | null;
-  ctaText?: string | null;
-  ctaButtonLabel?: string | null;
-  ctaButtonUrl?: string | null;
-  ctaPriceNote?: string | null;
-  footerLine1?: string | null;
-  footerLine2?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "site-content_select".
+ * via the `definition` "site-settings_select".
  */
-export interface SiteContentSelect<T extends boolean = true> {
-  heroTitlePrimary?: T;
-  heroTitleSecondary?: T;
-  heroTagline?: T;
-  heroSubTagline?: T;
-  heroAnimation?: T;
-  kickstarterLabel?: T;
-  kickstarterUrl?: T;
-  discordLabel?: T;
-  discordUrl?: T;
-  stats?:
-    | T
-    | {
-        icon?: T;
-        color?: T;
-        value?: T;
-        label?: T;
-        id?: T;
-      };
-  computeNote?:
-    | T
-    | {
-        icon?: T;
-        lines?:
-          | T
-          | {
-              text?: T;
-              id?: T;
-            };
-      };
-  whatIsHeading?: T;
-  whatIsParagraphs?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  badgeText?: T;
-  badgeUrl?: T;
-  photoCarousel?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  photoCaption?: T;
-  resinCarousel?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  specsHeading?: T;
-  specTabs?:
+export interface SiteSettingsSelect<T extends boolean = true> {
+  navBrandLabel?: T;
+  navLinks?:
     | T
     | {
         label?: T;
-        title?: T;
-        rows?:
-          | T
-          | {
-              label?: T;
-              value?: T;
-              id?: T;
-            };
+        url?: T;
         id?: T;
       };
-  pcbCarousel?:
-    | T
-    | {
-        image?: T;
-        id?: T;
-      };
-  aboutHeading?: T;
-  aboutParagraphs?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  ctaHeading?: T;
-  ctaText?: T;
-  ctaButtonLabel?: T;
-  ctaButtonUrl?: T;
-  ctaPriceNote?: T;
-  footerLine1?: T;
-  footerLine2?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

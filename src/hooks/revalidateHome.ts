@@ -2,11 +2,9 @@ import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
 import { revalidatePath } from 'next/cache'
 
-// Re-render the home page whenever content is saved in the admin panel,
-// so changes go live immediately without a rebuild.
-const revalidate = () => {
+const revalidate = (path = '/', type?: 'page' | 'layout') => {
   try {
-    revalidatePath('/')
+    revalidatePath(path, type)
   } catch {
     // revalidatePath only works inside a Next.js request context.
     // Outside of it (e.g. the seed script) there is no cache to clear.
@@ -18,7 +16,21 @@ export const revalidateHome: GlobalAfterChangeHook = ({ doc }) => {
   return doc
 }
 
+export const revalidateAllPages: GlobalAfterChangeHook = ({ doc }) => {
+  revalidate('/', 'layout')
+  return doc
+}
+
+export const revalidatePage: CollectionAfterChangeHook = ({ doc }) => {
+  if (typeof doc.path === 'string') {
+    revalidate(doc.path)
+  }
+
+  revalidate('/', 'layout')
+  return doc
+}
+
 export const revalidateHomeOnMediaChange: CollectionAfterChangeHook = ({ doc }) => {
-  revalidate()
+  revalidate('/', 'layout')
   return doc
 }
