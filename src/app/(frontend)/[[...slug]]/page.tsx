@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 
-import config from '@payload-config'
+import { unstable_cache, unstable_noStore as noStore } from 'next/cache'
 import { notFound } from 'next/navigation'
-import { getPayload } from 'payload'
 
 import { PageRenderer } from '@/components/PageRenderer'
+import { getPayloadClient } from '@/lib/payload'
+
+export const dynamic = 'force-dynamic'
 
 const pathFromSlug = (slug?: string[]) => (slug?.length ? `/${slug.join('/')}` : '/')
 
@@ -15,7 +17,7 @@ type Args = {
 }
 
 const getPageByPath = async (path: string) => {
-  const payload = await getPayload({ config })
+  const payload = await getPayloadClient()
 
   const result = await payload.find({
     collection: 'pages',
@@ -31,6 +33,41 @@ const getPageByPath = async (path: string) => {
   return { payload, page: result.docs[0] ?? null }
 }
 
+const getNavPages = async () => {
+  const payload = await getPayloadClient()
+
+  return payload.find({
+    collection: 'pages',
+    depth: 0,
+    limit: 100,
+    sort: 'navOrder',
+    where: {
+      showInNav: {
+        equals: true,
+      },
+    },
+  })
+}
+
+const getPageData = async (path: string) => {
+  const { page } = await getPageByPath(path)
+  const navPages = await getNavPages()
+
+  return {
+    navPages: navPages.docs,
+    page,
+  }
+}
+
+const getCachedPageData = unstable_cache(getPageData, ['cms-page-data'], {
+  tags: ['cms-pages'],
+})
+
+const getSiteSettings = async () => {
+  const payload = await getPayloadClient()
+  return payload.findGlobal({ slug: 'site-settings', depth: 0 })
+}
+
 export const generateMetadata = async ({ params }: Args): Promise<Metadata> => {
   const { slug } = await params
   const { page } = await getPageByPath(pathFromSlug(slug))
@@ -40,41 +77,20 @@ export const generateMetadata = async ({ params }: Args): Promise<Metadata> => {
   }
 }
 
-export const generateStaticParams = async () => {
-  const payload = await getPayload({ config })
-  const pages = await payload.find({
-    collection: 'pages',
-    depth: 0,
-    limit: 100,
-  })
-
-  return pages.docs.map((page) => ({
-    slug: page.path === '/' ? [] : page.path.replace(/^\//, '').split('/'),
-  }))
-}
-
 export default async function Page({ params }: Args) {
   const { slug } = await params
-  const { payload, page } = await getPageByPath(pathFromSlug(slug))
+  const path = pathFromSlug(slug)
+  const settings = await getSiteSettings()
+
+  if (settings.disablePageCache) {
+    noStore()
+  }
+
+  const { navPages, page } = settings.disablePageCache ? await getPageData(path) : await getCachedPageData(path)
 
   if (!page) {
     notFound()
   }
 
-  const [settings, navPages] = await Promise.all([
-    payload.findGlobal({ slug: 'site-settings', depth: 0 }),
-    payload.find({
-      collection: 'pages',
-      depth: 0,
-      limit: 100,
-      sort: 'navOrder',
-      where: {
-        showInNav: {
-          equals: true,
-        },
-      },
-    }),
-  ])
-
-  return <PageRenderer page={page} navPages={navPages.docs} settings={settings} />
+  return <PageRenderer page={page} navPages={navPages} settings={settings} />
 }

@@ -1,9 +1,10 @@
 import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 const revalidate = (path = '/', type?: 'page' | 'layout') => {
   try {
+    revalidateTag('cms-pages', 'max')
     revalidatePath(path, type)
   } catch {
     // revalidatePath only works inside a Next.js request context.

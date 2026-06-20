@@ -38,6 +38,10 @@ Global navigation settings live in **Site Settings**. CMS-managed page links com
 from pages with `showInNav` enabled, and extra external links can be added there.
 The homepage can keep `showNavigation` disabled so it stays navbar-free.
 
+Site Settings also has **Disable frontend page cache**. Turn it on while editing
+from multiple environments (local + Vercel) so the frontend reads fresh CMS data
+on each request. Turn it off when the site is stable and you want cached page data.
+
 ## Environment
 
 ```bash
@@ -81,8 +85,8 @@ Vercel is the intended host:
 3. Add `DATABASE_URI` and `PAYLOAD_SECRET`.
 4. Deploy.
 
-The `vercel-build` script runs `payload generate:importmap`, `payload migrate`,
-and `next build`.
+The `vercel-build` script runs `next build`. Run Payload migrations deliberately
+before deploying schema changes.
 
 ## Schema Changes
 

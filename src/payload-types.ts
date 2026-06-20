@@ -724,6 +724,10 @@ export interface SiteSetting {
   id: number;
   navBrandLabel?: string | null;
   /**
+   * Turn this on while editing across local and Vercel so frontend pages read fresh CMS data on every request.
+   */
+  disablePageCache?: boolean | null;
+  /**
    * Optional links shown after CMS-managed page links. Useful for external links.
    */
   navLinks?:
@@ -742,6 +746,7 @@ export interface SiteSetting {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   navBrandLabel?: T;
+  disablePageCache?: T;
   navLinks?:
     | T
     | {

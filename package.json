@@ -4,14 +4,14 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
-    "vercel-build": "payload generate:importmap && next build",
+    "vercel-build": "next build",
     "start": "next start",
     "payload": "payload",
     "generate:types": "payload generate:types",
     "generate:importmap": "payload generate:importmap",
-    "seed": "tsx --env-file-if-exists=.env scripts/seed.ts"
+    "seed": "PAYLOAD_ENABLE_BLOB_STORAGE=true tsx --env-file-if-exists=.env scripts/seed.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.85.1",

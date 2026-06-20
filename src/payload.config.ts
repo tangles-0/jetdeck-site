@@ -15,6 +15,9 @@ import { SiteSettings } from './globals/SiteSettings'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const databaseUri = process.env.DATABASE_URI || process.env.DATABASE_URL || process.env.POSTGRES_URL
+const enableBlobStorage =
+  Boolean(process.env.BLOB_READ_WRITE_TOKEN) &&
+  (process.env.VERCEL === '1' || process.env.PAYLOAD_ENABLE_BLOB_STORAGE === 'true')
 
 if (!databaseUri) {
   throw new Error('Missing database connection string. Set DATABASE_URI, DATABASE_URL, or POSTGRES_URL.')
@@ -43,9 +46,10 @@ export default buildConfig({
   plugins: [
     // On Vercel the filesystem is read-only/ephemeral, so uploads go to Vercel Blob.
     // Locally (no token set) uploads land in ./media on disk.
-    ...(process.env.BLOB_READ_WRITE_TOKEN
+    ...(enableBlobStorage
       ? [
           vercelBlobStorage({
+            clientUploads: false,
             collections: { media: true },
             token: process.env.BLOB_READ_WRITE_TOKEN,
           }),

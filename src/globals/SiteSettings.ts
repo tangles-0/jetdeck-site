@@ -18,6 +18,16 @@ export const SiteSettings: GlobalConfig = {
       defaultValue: 'JetDeck SCOUT',
     },
     {
+      name: 'disablePageCache',
+      label: 'Disable frontend page cache',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description:
+          'Turn this on while editing across local and Vercel so frontend pages read fresh CMS data on every request.',
+      },
+    },
+    {
       name: 'navLinks',
       label: 'Extra navigation links',
       type: 'array',
