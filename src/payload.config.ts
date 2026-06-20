@@ -14,6 +14,11 @@ import { SiteSettings } from './globals/SiteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
+const databaseUri = process.env.DATABASE_URI || process.env.DATABASE_URL || process.env.POSTGRES_URL
+
+if (!databaseUri) {
+  throw new Error('Missing database connection string. Set DATABASE_URI, DATABASE_URL, or POSTGRES_URL.')
+}
 
 export default buildConfig({
   admin: {
@@ -31,7 +36,7 @@ export default buildConfig({
   },
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.DATABASE_URI || '',
+      connectionString: databaseUri,
     },
   }),
   sharp,

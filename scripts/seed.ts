@@ -23,7 +23,7 @@ const imageItems = (images: number[]) => images.map((image) => ({ image }))
 const paragraphs = (items: string[]) => items.map((text) => ({ text }))
 
 const run = async () => {
-  const databaseUri = process.env.DATABASE_URI ?? ''
+  const databaseUri = process.env.DATABASE_URI || process.env.DATABASE_URL || process.env.POSTGRES_URL || ''
   const isLocalDatabase =
     databaseUri.includes('localhost') ||
     databaseUri.includes('127.0.0.1') ||
