@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { pageBlocks } from '../fields/pageBuilder'
 import { revalidatePage } from '../hooks/revalidateHome'
+import { validatePagePath } from '../lib/cmsValidation'
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -33,10 +34,7 @@ export const Pages: CollectionConfig = {
       admin: {
         description: 'Public URL path. Use / for the homepage, /about for a top-level page, etc.',
       },
-      validate: (value: string | string[] | null | undefined) =>
-        typeof value === 'string' && value.startsWith('/')
-          ? true
-          : 'Path must start with /',
+      validate: validatePagePath,
     },
     {
       name: 'showNavigation',

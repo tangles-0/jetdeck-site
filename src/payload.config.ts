@@ -15,12 +15,29 @@ import { SiteSettings } from './globals/SiteSettings'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 const databaseUri = process.env.DATABASE_URI || process.env.DATABASE_URL || process.env.POSTGRES_URL
+const payloadSecret = process.env.PAYLOAD_SECRET
 const enableBlobStorage =
   Boolean(process.env.BLOB_READ_WRITE_TOKEN) &&
   (process.env.VERCEL === '1' || process.env.PAYLOAD_ENABLE_BLOB_STORAGE === 'true')
+const serverURL = (
+  process.env.PAYLOAD_SERVER_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+).replace(/\/+$/, '')
+const allowedOrigins = [
+  serverURL,
+  ...(process.env.PAYLOAD_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter(Boolean),
+]
 
 if (!databaseUri) {
   throw new Error('Missing database connection string. Set DATABASE_URI, DATABASE_URL, or POSTGRES_URL.')
+}
+
+if (!payloadSecret || payloadSecret === 'changeme' || payloadSecret.length < 32) {
+  throw new Error('Missing or weak PAYLOAD_SECRET. Set it to at least 32 random characters.')
 }
 
 export default buildConfig({
@@ -33,7 +50,15 @@ export default buildConfig({
   collections: [Users, Pages, Media],
   globals: [SiteSettings],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: payloadSecret,
+  serverURL,
+  cors: allowedOrigins,
+  csrf: allowedOrigins,
+  graphQL: {
+    disable: process.env.NODE_ENV === 'production',
+    disableIntrospectionInProduction: true,
+    disablePlaygroundInProduction: true,
+  },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

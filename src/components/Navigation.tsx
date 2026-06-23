@@ -1,11 +1,13 @@
 import Link from 'next/link'
 
+import { isSafeHref, isSafePagePath } from '@/lib/cmsValidation'
 import type { Page, SiteSetting } from '@/payload-types'
 
 type NavPage = Pick<Page, 'id' | 'path' | 'title' | 'navLabel'>
 
 export function Navigation({ pages, settings }: { pages: NavPage[]; settings: SiteSetting }) {
-  const extraLinks = settings.navLinks ?? []
+  const safePages = pages.filter((page) => isSafePagePath(page.path))
+  const extraLinks = (settings.navLinks ?? []).filter((link) => isSafeHref(link.url))
 
   return (
     <header className="relative z-10 border-b border-slate-800/80 bg-slate-950/75 backdrop-blur">
@@ -14,7 +16,7 @@ export function Navigation({ pages, settings }: { pages: NavPage[]; settings: Si
           {settings.navBrandLabel || 'JetDeck SCOUT'}
         </Link>
         <div className="flex flex-wrap gap-4 text-sm font-mono">
-          {pages.map((page) => (
+          {safePages.map((page) => (
             <Link
               key={page.id}
               href={page.path}

@@ -7,6 +7,7 @@ import type { Media } from '@/payload-types'
 import { ProductCarousel } from '@/components/ProductCarousel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { isSafeHref } from '@/lib/cmsValidation'
 
 import { CTAButtons } from './CTAButtons'
 import { asMedia, iconColors, icons, toImages } from './blockUtils'
@@ -297,15 +298,23 @@ function FooterBlock({ block }: { block: Extract<PageBlock, { blockType: 'footer
               <div key={column.id ?? index}>
                 <h3 className="font-mono text-cyan-400 mb-3">{column.title}</h3>
                 <div className="flex flex-col gap-2">
-                  {(column.links ?? []).map((link, linkIndex) => (
-                    <a
-                      key={link.id ?? linkIndex}
-                      href={link.url}
-                      className="text-slate-500 hover:text-cyan-300 transition-colors"
-                    >
-                      {link.label}
-                    </a>
-                  ))}
+                  {(column.links ?? [])
+                    .filter((link) => isSafeHref(link.url))
+                    .map((link, linkIndex) => {
+                      const isExternal = !link.url.startsWith('/')
+
+                      return (
+                        <a
+                          key={link.id ?? linkIndex}
+                          href={link.url}
+                          target={isExternal ? '_blank' : undefined}
+                          rel={isExternal ? 'noopener noreferrer' : undefined}
+                          className="text-slate-500 hover:text-cyan-300 transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      )
+                    })}
                 </div>
               </div>
             ))}

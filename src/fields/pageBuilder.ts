@@ -1,5 +1,7 @@
 import type { ArrayField, Block, Field } from 'payload'
 
+import { validateSafeHref } from '../lib/cmsValidation'
+
 export const iconOptions = [
   'Antenna',
   'Battery',
@@ -71,7 +73,7 @@ export const ctasField = (name = 'ctas', label = 'CTAs'): ArrayField => ({
   type: 'array',
   fields: [
     { name: 'label', type: 'text', required: true },
-    { name: 'url', type: 'text', required: true },
+    { name: 'url', type: 'text', required: true, validate: validateSafeHref },
     {
       name: 'variant',
       type: 'select',
@@ -239,7 +241,7 @@ export const FooterBlock: Block = {
           type: 'array',
           fields: [
             { name: 'label', type: 'text', required: true },
-            { name: 'url', type: 'text', required: true },
+            { name: 'url', type: 'text', required: true, validate: validateSafeHref },
           ],
         },
       ],

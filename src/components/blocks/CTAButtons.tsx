@@ -3,6 +3,7 @@
 import { ExternalLink, Terminal } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { isSafeHref } from '@/lib/cmsValidation'
 
 type CTA = {
   label: string
@@ -29,11 +30,13 @@ const CTAIcon = ({ icon }: { icon?: CTA['icon'] }) => {
 }
 
 export function CTAButtons({ ctas, align = 'center' }: { ctas?: CTA[] | null; align?: 'left' | 'center' }) {
-  if (!ctas?.length) return null
+  const safeCtas = (ctas ?? []).filter((cta) => isSafeHref(cta.url))
+
+  if (!safeCtas.length) return null
 
   return (
     <div className={`flex flex-col md:flex-row gap-6 ${align === 'center' ? 'justify-center' : ''}`}>
-      {ctas.map((cta, index) =>
+      {safeCtas.map((cta, index) =>
         cta.variant === 'secondary' ? (
           <a
             key={cta.id ?? index}

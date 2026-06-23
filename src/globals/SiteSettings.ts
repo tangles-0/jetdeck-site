@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { revalidateAllPages } from '../hooks/revalidateHome'
+import { validateSafeHref } from '../lib/cmsValidation'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -36,7 +37,7 @@ export const SiteSettings: GlobalConfig = {
       },
       fields: [
         { name: 'label', type: 'text', required: true },
-        { name: 'url', type: 'text', required: true },
+        { name: 'url', type: 'text', required: true, validate: validateSafeHref },
       ],
     },
   ],
