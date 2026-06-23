@@ -1,0 +1,10 @@
+---
+description: Next.js standards — server/client boundary, data fetching, Server Actions, auth, performance, accessibility
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+When editing TypeScript/TSX in this repo, follow the Next.js standards below.
+They are the source of truth; edit those files directly if standards change.
+
+#[[file:../../.agent/NEXTJS_CHECKLIST.md]]

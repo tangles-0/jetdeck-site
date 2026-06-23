@@ -1,0 +1,10 @@
+---
+description: Root agent instructions — retrieval-led reasoning, required docs check, self-update — from AGENTS.md
+alwaysApply: true
+---
+
+Read and follow [AGENTS.md](../../AGENTS.md) at the repository root. It contains:
+- The required docs checklist (verify these files exist before starting work)
+- Self-update instructions (how to pull latest standards)
+- Retrieval-led reasoning guidance
+- Project-specific overrides (package manager, framework docs index, etc.)

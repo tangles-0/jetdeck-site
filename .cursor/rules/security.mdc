@@ -1,0 +1,10 @@
+---
+description: Security standards — auth, RBAC, tenant isolation, injection prevention, secrets, CORS, rate limiting
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+When editing code in this repo, follow the security standards below.
+They are the source of truth; edit those files directly if standards change.
+
+#[[file:../../.agent/SECURITY_CHECKLIST.md]]

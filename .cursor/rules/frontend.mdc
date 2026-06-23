@@ -1,0 +1,11 @@
+---
+description: Front-end standards for this Next.js/Payload site
+globs: "**/*.{ts,tsx,js,jsx}"
+alwaysApply: false
+---
+
+When editing front-end code in this repo, follow the front-end checklist and style guide below.
+They are the source of truth; edit those files directly if standards change.
+
+#[[file:../../.agent/FRONTEND_CHECKLIST.md]]
+#[[file:../../.agent/STYLE_GUIDE.md]]
