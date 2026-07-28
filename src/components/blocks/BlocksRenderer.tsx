@@ -2,94 +2,21 @@
 
 import { Cpu } from 'lucide-react'
 
-import type { Media } from '@/payload-types'
+import type { Page } from '@/payload-types'
 
+import { FileEmbed } from '@/components/blocks/FileEmbed'
 import { ProductCarousel } from '@/components/ProductCarousel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { isSafeHref } from '@/lib/cmsValidation'
+import { KnowledgebaseIndex } from '@/components/knowledgebase/KnowledgebaseIndex'
+import type { KnowledgebasePage } from '@/components/knowledgebase/knowledgebaseTree'
 
 import { CTAButtons } from './CTAButtons'
 import { asMedia, iconColors, icons, toImages } from './blockUtils'
+import { RichTextContent } from './RichTextContent'
 
-type ParagraphItem = { text: string; id?: string | null }
-type CTAItem = {
-  label: string
-  url: string
-  variant?: 'primary' | 'secondary' | null
-  icon?: 'none' | 'externalLink' | 'discord' | 'terminal' | null
-  id?: string | null
-}
-
-type BaseBlock = { id?: string | null; blockType?: string | null }
-
-type PageBlock =
-  | (BaseBlock & {
-      blockType: 'hero'
-      titlePrimary: string
-      titleSecondary: string
-      tagline?: string | null
-      subtagline?: string | null
-    })
-  | (BaseBlock & {
-      blockType: 'singleImage'
-      image?: number | Media | null
-      constrainWidth?: boolean | null
-      caption?: string | null
-    })
-  | (BaseBlock & {
-      blockType: 'photoCarousel'
-      images?: { image: number | Media; id?: string | null }[] | null
-      caption?: string | null
-      constrainWidth?: boolean | null
-    })
-  | (BaseBlock & {
-      blockType: 'cta'
-      ctas?: CTAItem[] | null
-      align?: 'left' | 'center' | null
-    })
-  | (BaseBlock & {
-      blockType: 'textBlock'
-      heading?: string | null
-      paragraphs?: ParagraphItem[] | null
-    })
-  | (BaseBlock & {
-      blockType: 'quickStats'
-      stats?: { icon: string; color: string; value: string; label: string; id?: string | null }[] | null
-    })
-  | (BaseBlock & {
-      blockType: 'detailStat'
-      icon?: string | null
-      color?: string | null
-      lines?: ParagraphItem[] | null
-    })
-  | (BaseBlock & {
-      blockType: 'specsTable'
-      heading?: string | null
-      tabs?: {
-        label: string
-        title: string
-        rows?: { label: string; value: string; id?: string | null }[] | null
-        id?: string | null
-      }[] | null
-    })
-  | (BaseBlock & {
-      blockType: 'ctaContainer'
-      title: string
-      paragraphs?: ParagraphItem[] | null
-      ctas?: CTAItem[] | null
-      subtext?: string | null
-    })
-  | (BaseBlock & {
-      blockType: 'footer'
-      line1?: string | null
-      line2?: string | null
-      columns?: {
-        title: string
-        links?: { label: string; url: string; id?: string | null }[] | null
-        id?: string | null
-      }[] | null
-    })
+type PageBlock = Page['layout'][number]
+type PageLayoutVariant = 'default' | 'knowledgebase'
 
 const sectionHeading = (heading?: string | null) =>
   heading ? (
@@ -171,6 +98,55 @@ function TextBlock({ block }: { block: Extract<PageBlock, { blockType: 'textBloc
           </Card>
         </div>
       </div>
+    </section>
+  )
+}
+
+function RichTextBlock({
+  block,
+  variant,
+}: {
+  block: Extract<PageBlock, { blockType: 'richText' }>
+  variant: PageLayoutVariant
+}) {
+  return (
+    <section className={variant === 'knowledgebase' ? 'py-4' : 'container mx-auto px-4 py-12 md:py-20'}>
+      <RichTextContent content={block.content} isKnowledgebase={variant === 'knowledgebase'} />
+    </section>
+  )
+}
+
+function KnowledgebaseIndexBlock({
+  block,
+  currentPath,
+  knowledgebasePages,
+}: {
+  block: Extract<PageBlock, { blockType: 'knowledgebaseIndex' }>
+  currentPath?: string | null
+  knowledgebasePages?: KnowledgebasePage[] | null
+}) {
+  return (
+    <KnowledgebaseIndex
+      pages={knowledgebasePages}
+      currentPath={currentPath}
+      variant={block.variant ?? 'standalone'}
+      heading={block.heading}
+      intro={block.intro}
+      className={block.variant === 'sidebar' ? 'mx-auto w-full max-w-md px-4 py-6' : undefined}
+    />
+  )
+}
+
+function FileDownloadBlock({
+  block,
+  variant,
+}: {
+  block: Extract<PageBlock, { blockType: 'fileDownload' }>
+  variant: PageLayoutVariant
+}) {
+  return (
+    <section className={variant === 'knowledgebase' ? 'py-4' : 'container mx-auto px-4 py-6'}>
+      <FileEmbed url={block.url} description={block.description} />
     </section>
   )
 }
@@ -286,50 +262,17 @@ function CTAContainerBlock({ block }: { block: Extract<PageBlock, { blockType: '
   )
 }
 
-function FooterBlock({ block }: { block: Extract<PageBlock, { blockType: 'footer' }> }) {
-  const columns = block.columns ?? []
-
-  return (
-    <footer className="border-t border-slate-800 py-8">
-      <div className="container mx-auto px-4">
-        {columns.length > 0 && (
-          <div className="grid gap-8 md:grid-cols-3 mb-8 text-sm">
-            {columns.map((column, index) => (
-              <div key={column.id ?? index}>
-                <h3 className="font-mono text-cyan-400 mb-3">{column.title}</h3>
-                <div className="flex flex-col gap-2">
-                  {(column.links ?? [])
-                    .filter((link) => isSafeHref(link.url))
-                    .map((link, linkIndex) => {
-                      const isExternal = !link.url.startsWith('/')
-
-                      return (
-                        <a
-                          key={link.id ?? linkIndex}
-                          href={link.url}
-                          target={isExternal ? '_blank' : undefined}
-                          rel={isExternal ? 'noopener noreferrer' : undefined}
-                          className="text-slate-500 hover:text-cyan-300 transition-colors"
-                        >
-                          {link.label}
-                        </a>
-                      )
-                    })}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="text-center text-slate-500 font-mono text-sm">
-          {block.line1 && <p>{block.line1}</p>}
-          {block.line2 && <p className="mt-2">{block.line2}</p>}
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-export function BlocksRenderer({ blocks }: { blocks?: PageBlock[] | null }) {
+export function BlocksRenderer({
+  blocks,
+  currentPath,
+  knowledgebasePages,
+  variant = 'default',
+}: {
+  blocks?: PageBlock[] | null
+  currentPath?: string | null
+  knowledgebasePages?: KnowledgebasePage[] | null
+  variant?: PageLayoutVariant
+}) {
   if (!blocks?.length) return null
 
   return blocks.map((block, index) => {
@@ -346,6 +289,19 @@ export function BlocksRenderer({ blocks }: { blocks?: PageBlock[] | null }) {
         return <CTABlock key={key} block={block} />
       case 'textBlock':
         return <TextBlock key={key} block={block} />
+      case 'richText':
+        return <RichTextBlock key={key} block={block} variant={variant} />
+      case 'knowledgebaseIndex':
+        return (
+          <KnowledgebaseIndexBlock
+            key={key}
+            block={block}
+            currentPath={currentPath}
+            knowledgebasePages={knowledgebasePages}
+          />
+        )
+      case 'fileDownload':
+        return <FileDownloadBlock key={key} block={block} variant={variant} />
       case 'quickStats':
         return <QuickStatsBlock key={key} block={block} />
       case 'detailStat':
@@ -354,8 +310,6 @@ export function BlocksRenderer({ blocks }: { blocks?: PageBlock[] | null }) {
         return <SpecsTableBlock key={key} block={block} />
       case 'ctaContainer':
         return <CTAContainerBlock key={key} block={block} />
-      case 'footer':
-        return <FooterBlock key={key} block={block} />
       default:
         return null
     }

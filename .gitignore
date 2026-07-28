@@ -4,3 +4,5 @@ dist
 .env
 .env.local
 media
+# next-agents-md
+.next-docs/

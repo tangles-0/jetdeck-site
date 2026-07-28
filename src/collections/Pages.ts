@@ -2,7 +2,18 @@ import type { CollectionConfig } from 'payload'
 
 import { pageBlocks } from '../fields/pageBuilder'
 import { revalidatePage } from '../hooks/revalidateHome'
-import { validatePagePath } from '../lib/cmsValidation'
+import { validateOptionalPagePath, validatePagePath } from '../lib/cmsValidation'
+
+type PagePathValue = string | string[] | null | undefined
+
+type PagePathValidationArgs = {
+  siblingData?: {
+    isKnowledgebasePage?: boolean | null
+  }
+}
+
+const validatePagePathForPage = (value: PagePathValue, { siblingData }: PagePathValidationArgs) =>
+  siblingData?.isKnowledgebasePage ? validateOptionalPagePath(value) : validatePagePath(value)
 
 export const Pages: CollectionConfig = {
   slug: 'pages',
@@ -11,9 +22,18 @@ export const Pages: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'path', 'showInNav', 'updatedAt'],
+    defaultColumns: ['title', 'path', 'isKnowledgebasePage', 'showInNav', 'updatedAt'],
   },
   hooks: {
+    beforeValidate: [
+      ({ data }) => {
+        if (data?.isKnowledgebasePage && typeof data.path === 'string' && data.path.trim() === '') {
+          data.path = null
+        }
+
+        return data
+      },
+    ],
     afterChange: [revalidatePage],
   },
   fields: [
@@ -28,13 +48,12 @@ export const Pages: CollectionConfig = {
     {
       name: 'path',
       type: 'text',
-      required: true,
       unique: true,
-      defaultValue: '/',
       admin: {
-        description: 'Public URL path. Use / for the homepage, /about for a top-level page, etc.',
+        description:
+          'Public URL path. Required for normal pages. Knowledgebase pages may leave this blank to derive the URL from their parent and knowledgebase label.',
       },
-      validate: validatePagePath,
+      validate: validatePagePathForPage,
     },
     {
       name: 'showNavigation',
@@ -62,6 +81,58 @@ export const Pages: CollectionConfig = {
       defaultValue: 0,
       admin: {
         condition: (_, siblingData) => siblingData.showInNav,
+      },
+    },
+    {
+      name: 'isKnowledgebasePage',
+      label: 'Include this page in the knowledgebase',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Knowledgebase pages appear in knowledgebase indexes and use the wide article layout.',
+      },
+    },
+    {
+      name: 'knowledgebaseLabel',
+      label: 'Knowledgebase label',
+      type: 'text',
+      admin: {
+        condition: (_, siblingData) => siblingData.isKnowledgebasePage,
+        description: 'Optional index label and URL segment. Falls back to the page title.',
+      },
+    },
+    {
+      name: 'knowledgebaseDescription',
+      label: 'Knowledgebase description',
+      type: 'textarea',
+      admin: {
+        condition: (_, siblingData) => siblingData.isKnowledgebasePage,
+        description: 'Optional summary shown on standalone knowledgebase indexes.',
+      },
+    },
+    {
+      name: 'knowledgebaseParent',
+      label: 'Knowledgebase parent page',
+      type: 'relationship',
+      relationTo: 'pages',
+      hasMany: false,
+      filterOptions: {
+        isKnowledgebasePage: {
+          equals: true,
+        },
+      },
+      admin: {
+        condition: (_, siblingData) => siblingData.isKnowledgebasePage,
+        description: 'Optional parent page used to build the visual hierarchy in the knowledgebase index.',
+      },
+    },
+    {
+      name: 'knowledgebaseOrder',
+      label: 'Knowledgebase order',
+      type: 'number',
+      defaultValue: 0,
+      admin: {
+        condition: (_, siblingData) => siblingData.isKnowledgebasePage,
       },
     },
     {

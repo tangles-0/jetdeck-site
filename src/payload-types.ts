@@ -159,9 +159,9 @@ export interface Page {
    */
   title: string;
   /**
-   * Public URL path. Use / for the homepage, /about for a top-level page, etc.
+   * Public URL path. Required for normal pages. Knowledgebase pages may leave this blank to derive the URL from their parent and knowledgebase label.
    */
-  path: string;
+  path?: string | null;
   showNavigation?: boolean | null;
   showInNav?: boolean | null;
   /**
@@ -169,6 +169,23 @@ export interface Page {
    */
   navLabel?: string | null;
   navOrder?: number | null;
+  /**
+   * Knowledgebase pages appear in knowledgebase indexes and use the wide article layout.
+   */
+  isKnowledgebasePage?: boolean | null;
+  /**
+   * Optional index label and URL segment. Falls back to the page title.
+   */
+  knowledgebaseLabel?: string | null;
+  /**
+   * Optional summary shown on standalone knowledgebase indexes.
+   */
+  knowledgebaseDescription?: string | null;
+  /**
+   * Optional parent page used to build the visual hierarchy in the knowledgebase index.
+   */
+  knowledgebaseParent?: (number | null) | Page;
+  knowledgebaseOrder?: number | null;
   layout: (
     | {
         titlePrimary: string;
@@ -226,6 +243,50 @@ export interface Page {
         id?: string | null;
         blockName?: string | null;
         blockType: 'textBlock';
+      }
+    | {
+        /**
+         * Rich knowledgebase content with headings, inline links, inline code, lists, and code blocks.
+         */
+        content: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        };
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'richText';
+      }
+    | {
+        heading?: string | null;
+        /**
+         * Optional intro copy for standalone knowledgebase index pages.
+         */
+        intro?: string | null;
+        variant: 'standalone' | 'sidebar';
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'knowledgebaseIndex';
+      }
+    | {
+        /**
+         * Absolute URL for the externally hosted file.
+         */
+        url: string;
+        description: string;
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'fileDownload';
       }
     | {
         stats?:
@@ -334,29 +395,6 @@ export interface Page {
         id?: string | null;
         blockName?: string | null;
         blockType: 'ctaContainer';
-      }
-    | {
-        line1?: string | null;
-        line2?: string | null;
-        /**
-         * Optional sitemap-style footer link columns.
-         */
-        columns?:
-          | {
-              title: string;
-              links?:
-                | {
-                    label: string;
-                    url: string;
-                    id?: string | null;
-                  }[]
-                | null;
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-        blockName?: string | null;
-        blockType: 'footer';
       }
   )[];
   updatedAt: string;
@@ -495,6 +533,11 @@ export interface PagesSelect<T extends boolean = true> {
   showInNav?: T;
   navLabel?: T;
   navOrder?: T;
+  isKnowledgebasePage?: T;
+  knowledgebaseLabel?: T;
+  knowledgebaseDescription?: T;
+  knowledgebaseParent?: T;
+  knowledgebaseOrder?: T;
   layout?:
     | T
     | {
@@ -557,6 +600,30 @@ export interface PagesSelect<T extends boolean = true> {
                     text?: T;
                     id?: T;
                   };
+              id?: T;
+              blockName?: T;
+            };
+        richText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        knowledgebaseIndex?:
+          | T
+          | {
+              heading?: T;
+              intro?: T;
+              variant?: T;
+              id?: T;
+              blockName?: T;
+            };
+        fileDownload?:
+          | T
+          | {
+              url?: T;
+              description?: T;
               id?: T;
               blockName?: T;
             };
@@ -630,27 +697,6 @@ export interface PagesSelect<T extends boolean = true> {
                     id?: T;
                   };
               subtext?: T;
-              id?: T;
-              blockName?: T;
-            };
-        footer?:
-          | T
-          | {
-              line1?: T;
-              line2?: T;
-              columns?:
-                | T
-                | {
-                    title?: T;
-                    links?:
-                      | T
-                      | {
-                          label?: T;
-                          url?: T;
-                          id?: T;
-                        };
-                    id?: T;
-                  };
               id?: T;
               blockName?: T;
             };
@@ -737,6 +783,24 @@ export interface SiteSetting {
         id?: string | null;
       }[]
     | null;
+  footerLine1?: string | null;
+  footerLine2?: string | null;
+  /**
+   * Optional site-wide footer link columns.
+   */
+  footerColumns?:
+    | {
+        title: string;
+        links?:
+          | {
+              label: string;
+              url: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -752,6 +816,21 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | {
         label?: T;
         url?: T;
+        id?: T;
+      };
+  footerLine1?: T;
+  footerLine2?: T;
+  footerColumns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              id?: T;
+            };
         id?: T;
       };
   updatedAt?: T;

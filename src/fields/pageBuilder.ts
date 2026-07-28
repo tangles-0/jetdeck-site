@@ -1,3 +1,18 @@
+import {
+  BlocksFeature,
+  BoldFeature,
+  CodeBlock,
+  FixedToolbarFeature,
+  HeadingFeature,
+  InlineCodeFeature,
+  InlineToolbarFeature,
+  ItalicFeature,
+  LinkFeature,
+  OrderedListFeature,
+  ParagraphFeature,
+  UnorderedListFeature,
+  lexicalEditor,
+} from '@payloadcms/richtext-lexical'
 import type { ArrayField, Block, Field } from 'payload'
 
 import { validateSafeHref } from '../lib/cmsValidation'
@@ -45,6 +60,22 @@ export const ctaIconOptions = [
   { label: 'Discord', value: 'discord' },
   { label: 'Terminal', value: 'terminal' },
 ]
+
+const knowledgebaseRichTextEditor = lexicalEditor({
+  features: () => [
+    ParagraphFeature(),
+    HeadingFeature({ enabledHeadingSizes: ['h2', 'h3', 'h4'] }),
+    BoldFeature(),
+    ItalicFeature(),
+    InlineCodeFeature(),
+    LinkFeature(),
+    OrderedListFeature(),
+    UnorderedListFeature(),
+    BlocksFeature({ blocks: [CodeBlock()] }),
+    FixedToolbarFeature(),
+    InlineToolbarFeature(),
+  ],
+})
 
 export const paragraphsField = (name = 'paragraphs', label = 'Paragraphs'): ArrayField => ({
   name,
@@ -162,6 +193,68 @@ export const TextBlock: Block = {
   fields: [headingField(), paragraphsField()],
 }
 
+export const RichTextBlock: Block = {
+  slug: 'richText',
+  labels: { singular: 'Rich Text', plural: 'Rich Text Blocks' },
+  fields: [
+    {
+      name: 'content',
+      type: 'richText',
+      required: true,
+      editor: knowledgebaseRichTextEditor,
+      admin: {
+        description: 'Rich knowledgebase content with headings, inline links, inline code, lists, and code blocks.',
+      },
+    },
+  ],
+}
+
+export const KnowledgebaseIndexBlock: Block = {
+  slug: 'knowledgebaseIndex',
+  labels: { singular: 'Knowledgebase Index', plural: 'Knowledgebase Indexes' },
+  fields: [
+    headingField('Knowledgebase'),
+    {
+      name: 'intro',
+      type: 'textarea',
+      admin: {
+        description: 'Optional intro copy for standalone knowledgebase index pages.',
+      },
+    },
+    {
+      name: 'variant',
+      type: 'select',
+      required: true,
+      defaultValue: 'standalone',
+      options: [
+        { label: 'Standalone index page', value: 'standalone' },
+        { label: 'Collapsible sidebar', value: 'sidebar' },
+      ],
+    },
+  ],
+}
+
+export const FileDownloadBlock: Block = {
+  slug: 'fileDownload',
+  labels: { singular: 'File Download', plural: 'File Downloads' },
+  fields: [
+    {
+      name: 'url',
+      type: 'text',
+      required: true,
+      validate: validateSafeHref,
+      admin: {
+        description: 'Absolute URL for the externally hosted file.',
+      },
+    },
+    {
+      name: 'description',
+      type: 'textarea',
+      required: true,
+    },
+  ],
+}
+
 export const QuickStatsBlock: Block = {
   slug: 'quickStats',
   labels: { singular: 'Quick Stats', plural: 'Quick Stats' },
@@ -224,40 +317,17 @@ export const CTAContainerBlock: Block = {
   ],
 }
 
-export const FooterBlock: Block = {
-  slug: 'footer',
-  labels: { singular: 'Footer', plural: 'Footers' },
-  fields: [
-    { name: 'line1', type: 'text', defaultValue: '> JetDeck SCOUT © 2026' },
-    { name: 'line2', type: 'text', defaultValue: 'Built for hackers, makers, and dreamers.' },
-    {
-      name: 'columns',
-      type: 'array',
-      admin: { description: 'Optional sitemap-style footer link columns.' },
-      fields: [
-        { name: 'title', type: 'text', required: true },
-        {
-          name: 'links',
-          type: 'array',
-          fields: [
-            { name: 'label', type: 'text', required: true },
-            { name: 'url', type: 'text', required: true, validate: validateSafeHref },
-          ],
-        },
-      ],
-    },
-  ],
-}
-
 export const pageBlocks: Block[] = [
   HeroBlock,
   SingleImageBlock,
   PhotoCarouselBlock,
   CTABlock,
   TextBlock,
+  RichTextBlock,
+  KnowledgebaseIndexBlock,
+  FileDownloadBlock,
   QuickStatsBlock,
   DetailStatBlock,
   SpecsTableBlock,
   CTAContainerBlock,
-  FooterBlock,
 ]

@@ -88,6 +88,17 @@ const run = async () => {
         { label: 'Kickstarter', url: KICKSTARTER_URL },
         { label: 'Discord', url: DISCORD_URL },
       ],
+      footerLine1: '> JetDeck SCOUT © 2026',
+      footerLine2: 'Built for hackers, makers, and dreamers.',
+      footerColumns: [
+        {
+          title: 'Community',
+          links: [
+            { label: 'Kickstarter', url: KICKSTARTER_URL },
+            { label: 'Discord', url: DISCORD_URL },
+          ],
+        },
+      ],
     },
   })
 
@@ -290,20 +301,6 @@ const run = async () => {
             },
           ],
           subtext: 'Starting at $275 AUD (excl. compute module)',
-        },
-        {
-          blockType: 'footer',
-          line1: '> JetDeck SCOUT © 2026',
-          line2: 'Built for hackers, makers, and dreamers.',
-          columns: [
-            {
-              title: 'Community',
-              links: [
-                { label: 'Kickstarter', url: KICKSTARTER_URL },
-                { label: 'Discord', url: DISCORD_URL },
-              ],
-            },
-          ],
         },
       ],
     },

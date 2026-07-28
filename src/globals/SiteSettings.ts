@@ -40,5 +40,36 @@ export const SiteSettings: GlobalConfig = {
         { name: 'url', type: 'text', required: true, validate: validateSafeHref },
       ],
     },
+    {
+      name: 'footerLine1',
+      label: 'Footer line 1',
+      type: 'text',
+      defaultValue: '> JetDeck SCOUT © 2026',
+    },
+    {
+      name: 'footerLine2',
+      label: 'Footer line 2',
+      type: 'text',
+      defaultValue: 'Built for hackers, makers, and dreamers.',
+    },
+    {
+      name: 'footerColumns',
+      label: 'Footer link columns',
+      type: 'array',
+      admin: {
+        description: 'Optional site-wide footer link columns.',
+      },
+      fields: [
+        { name: 'title', type: 'text', required: true },
+        {
+          name: 'links',
+          type: 'array',
+          fields: [
+            { name: 'label', type: 'text', required: true },
+            { name: 'url', type: 'text', required: true, validate: validateSafeHref },
+          ],
+        },
+      ],
+    },
   ],
 }

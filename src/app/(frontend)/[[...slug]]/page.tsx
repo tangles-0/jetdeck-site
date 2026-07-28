@@ -4,6 +4,7 @@ import { unstable_cache, unstable_noStore as noStore } from 'next/cache'
 import { notFound } from 'next/navigation'
 
 import { PageRenderer } from '@/components/PageRenderer'
+import { resolvePagePath } from '@/lib/knowledgebasePaths'
 import { getPayloadClient } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -49,11 +50,48 @@ const getNavPages = async () => {
   })
 }
 
-const getPageData = async (path: string) => {
+const getKnowledgebasePages = async () => {
+  const payload = await getPayloadClient()
+
+  return payload.find({
+    collection: 'pages',
+    depth: 1,
+    limit: 200,
+    sort: 'knowledgebaseOrder',
+    where: {
+      isKnowledgebasePage: {
+        equals: true,
+      },
+    },
+  })
+}
+
+const findKnowledgebasePageByResolvedPath = (
+  path: string,
+  pages: Awaited<ReturnType<typeof getKnowledgebasePages>>['docs'],
+) => pages.find(page => resolvePagePath(page, pages) === path) ?? null
+
+const getPageByResolvedPath = async (path: string) => {
   const { page } = await getPageByPath(path)
-  const navPages = await getNavPages()
+
+  if (page) {
+    return page
+  }
+
+  const knowledgebasePages = await getKnowledgebasePages()
+  return findKnowledgebasePageByResolvedPath(path, knowledgebasePages.docs)
+}
+
+const getPageData = async (path: string) => {
+  const [{ page: explicitPage }, navPages, knowledgebasePages] = await Promise.all([
+    getPageByPath(path),
+    getNavPages(),
+    getKnowledgebasePages(),
+  ])
+  const page = explicitPage ?? findKnowledgebasePageByResolvedPath(path, knowledgebasePages.docs)
 
   return {
+    knowledgebasePages: knowledgebasePages.docs,
     navPages: navPages.docs,
     page,
   }
@@ -70,14 +108,14 @@ const getSiteSettings = async () => {
 
 export const generateMetadata = async ({ params }: Args): Promise<Metadata> => {
   const { slug } = await params
-  const { page } = await getPageByPath(pathFromSlug(slug))
+  const page = await getPageByResolvedPath(pathFromSlug(slug))
 
   return {
     title: page?.title ? `${page.title} | JetDeck SCOUT` : 'JetDeck SCOUT',
   }
 }
 
-export default async function Page({ params }: Args) {
+const Page = async ({ params }: Args) => {
   const { slug } = await params
   const path = pathFromSlug(slug)
   const settings = await getSiteSettings()
@@ -86,11 +124,23 @@ export default async function Page({ params }: Args) {
     noStore()
   }
 
-  const { navPages, page } = settings.disablePageCache ? await getPageData(path) : await getCachedPageData(path)
+  const { knowledgebasePages, navPages, page } = settings.disablePageCache
+    ? await getPageData(path)
+    : await getCachedPageData(path)
 
   if (!page) {
     notFound()
   }
 
-  return <PageRenderer page={page} navPages={navPages} settings={settings} />
+  return (
+    <PageRenderer
+      page={page}
+      currentPath={path}
+      navPages={navPages}
+      settings={settings}
+      knowledgebasePages={knowledgebasePages}
+    />
+  )
 }
+
+export default Page

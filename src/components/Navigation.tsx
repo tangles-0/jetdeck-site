@@ -4,9 +4,12 @@ import { isSafeHref, isSafePagePath } from '@/lib/cmsValidation'
 import type { Page, SiteSetting } from '@/payload-types'
 
 type NavPage = Pick<Page, 'id' | 'path' | 'title' | 'navLabel'>
+type SafeNavPage = NavPage & { path: string }
+
+const isSafeNavPage = (page: NavPage): page is SafeNavPage => isSafePagePath(page.path)
 
 export function Navigation({ pages, settings }: { pages: NavPage[]; settings: SiteSetting }) {
-  const safePages = pages.filter((page) => isSafePagePath(page.path))
+  const safePages = pages.filter(isSafeNavPage)
   const extraLinks = (settings.navLinks ?? []).filter((link) => isSafeHref(link.url))
 
   return (

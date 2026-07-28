@@ -29,6 +29,14 @@ export const validatePagePath = (value: FieldValue) => {
     : 'Path may only contain letters, numbers, slashes, hyphens, and underscores'
 }
 
+export const validateOptionalPagePath = (value: FieldValue) => {
+  if (value === null || value === undefined || value === '') {
+    return true
+  }
+
+  return validatePagePath(value)
+}
+
 export const validateSafeHref = (value: FieldValue) => {
   if (typeof value !== 'string') {
     return 'URL must be a string'

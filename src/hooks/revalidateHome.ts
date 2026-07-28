@@ -2,6 +2,8 @@ import type { CollectionAfterChangeHook, GlobalAfterChangeHook } from 'payload'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 
+import { isSafePagePath } from '../lib/cmsValidation'
+
 const revalidate = (path = '/', type?: 'page' | 'layout') => {
   try {
     revalidateTag('cms-pages', 'max')
@@ -23,7 +25,7 @@ export const revalidateAllPages: GlobalAfterChangeHook = ({ doc }) => {
 }
 
 export const revalidatePage: CollectionAfterChangeHook = ({ doc }) => {
-  if (typeof doc.path === 'string') {
+  if (isSafePagePath(doc.path)) {
     revalidate(doc.path)
   }
 
